@@ -82,7 +82,8 @@ Since this project runs entirely on Firebase emulators, we use **Firestore as a 
 - No GCP authentication required for local development
 - Works seamlessly with Firebase emulators
 - Same API interface as Secret Manager for easy production migration
-- Visible in Firestore Emulator UI for debugging
+- Visible in Firestore Emulator UI at http://localhost:4000/firestore for debugging
+- Can inspect and modify secrets directly in the emulator UI
 
 ## Running Locally
 
@@ -96,8 +97,9 @@ firebase emulators:start
 This will start:
 
 - Functions emulator on http://localhost:5001
-- Hosting emulator on http://localhost:5000
-- UI dashboard on http://localhost:4000
+- Firestore emulator on http://localhost:8080
+- Hosting emulator on http://localhost:5002
+- Emulator UI dashboard on http://localhost:4000
 
 ### Start Frontend Development Server
 
