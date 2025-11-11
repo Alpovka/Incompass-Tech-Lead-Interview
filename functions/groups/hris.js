@@ -2,6 +2,8 @@
 import { Finch } from '@tryfinch/finch-api'
 import helperFunctions from './helper_functions.js'
 import { createMapFromList } from './helpers/logic_functions.js'
+import dotenv from 'dotenv'
+dotenv.config({ path: '.env.local' })
 
 // Initialize Finch API client
 const client = new Finch({
