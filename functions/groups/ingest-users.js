@@ -1,5 +1,5 @@
 // Employee data ingestion (base version)
-import { INGESTION_MODES, VALIDATIONS } from '../shared/constants/integration-constants.js'
+import { INGESTION_MODES } from '../shared/constants/integration-constants.js'
 import { checkEvaluations } from './helpers/ingestion_functions.js'
 
 /**

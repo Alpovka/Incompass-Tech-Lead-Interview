@@ -123,8 +123,8 @@ export const getFinchEmployerData = async (req, res) => {
     // No need to fetch data if the request made from dataSync
     const parsedEmployees = !req.body.dataSync
       ? await helperFunctions.getFinchData({
-          accessToken
-        })
+        accessToken
+      })
       : []
 
     const response = {
