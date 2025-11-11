@@ -1,5 +1,5 @@
 // Export all helper functions
-import { createEmployerClient } from './helpers/hris_functions.js'
+import { getFinchData } from './helpers/hris_functions.js'
 import { createMapFromList } from './helpers/logic_functions.js'
 
 // Mock database functions for the MVP
@@ -26,7 +26,7 @@ const batchGetOperation = async ({ collectionName, fieldName, values }) => {
 }
 
 export default {
-  createEmployerClient,
+  getFinchData,
   createMapFromList,
   getCompanyDoc,
   getCurrentUsers,

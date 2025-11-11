@@ -19,10 +19,11 @@ export const AuthProvider = (props) => {
       features: {
         finchIntegration: true,
         dataIngestion: true,
-        goals: true
+        goals: true,
+        dataSync: true
       },
-      permissions: {}
-      // dataSyncSetting comes in PR
+      permissions: {},
+      dataSyncSetting: false
     }
 
     setUser(mockUser)

@@ -9,15 +9,15 @@ const createDummyData = async ({ organizationName, organizationDomain, isDemoAcc
       name: organizationName,
       logoDisplayMode: 'SHOW_NAME_AND_LOGO'
     },
-    // Base version does NOT have dataSyncSetting (comes in PR)
+    dataSyncSetting: false,
     features: {
       [featuresMap.GOALS]: true,
       [featuresMap.DATA_INGESTION]: !isDemoAccount,
       [featuresMap.LIMIT_FEEDBACK_RECEIVERS]: !isDemoAccount,
       [featuresMap.DEVELOPMENT_PLAN]: true,
       [featuresMap.REWARD_ALLOCATION]: true,
-      [featuresMap.FINCH_INTEGRATION]: false
-      // DATA_SYNC feature comes in PR
+      [featuresMap.FINCH_INTEGRATION]: false,
+      [featuresMap.DATA_SYNC]: false
     },
     domains: [organizationDomain],
     status: COMPANY_STATUS.ACTIVE

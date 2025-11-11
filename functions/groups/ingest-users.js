@@ -17,9 +17,10 @@ export const ingestUsers = async ({ data, isPreview, invoker, mode }) => {
   // Mock incoming users from data
   const incomingUsers = data || []
 
-  // Check if invoker user is in incoming users (base version - always checks)
+  // Check if invoker user is in incoming users
+  // Pass if mode is in merge mode OR if invoker.email is missing (dataSync case)
   validations.invokerAbsent = false
-  if (mode === INGESTION_MODES.OVERWRITE) {
+  if (mode === INGESTION_MODES.OVERWRITE && invoker.email) {
     validations.invokerAbsent = !incomingUsers.find(
       (user) => user.email === invoker.email
     )

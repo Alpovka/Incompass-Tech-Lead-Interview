@@ -1,6 +1,6 @@
 import { object, string, boolean } from 'yup'
 
-// User schema (base version WITHOUT dataSyncSetting)
+// User schema
 export const getUser = object()
   .shape({
     uid: string().required(),
@@ -10,7 +10,8 @@ export const getUser = object()
     company: string().required(),
     status: string().required(),
     features: object().notRequired(),
-    permissions: object().notRequired()
+    permissions: object().notRequired(),
+    dataSyncSetting: boolean().notRequired()
   })
   .noUnknown()
 

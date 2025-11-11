@@ -1,12 +1,13 @@
-// HRIS integration endpoints (base version WITHOUT data sync features)
+// HRIS integration endpoints (WITH data sync features from PR)
 import { Finch } from '@tryfinch/finch-api'
+import { PROD_PROJECT_ID } from '../consts/constants.js'
 import helperFunctions from './helper_functions.js'
-import { createMapFromList } from './helpers/logic_functions.js'
+import { createSecret, getSecret } from './helpers/secret_manager_functions.js'
 
 // Initialize Finch API client
 const client = new Finch({
-  clientId: process.env.FINCH_CLIENT_ID,
-  clientSecret: process.env.FINCH_CLIENT_SECRET
+  clientId: process.env.FINCH_CLIENT_ID || 'sandbox-client-id',
+  clientSecret: process.env.FINCH_CLIENT_SECRET || 'sandbox-client-secret'
 })
 
 // Mock timer service
@@ -25,9 +26,9 @@ const sendErrorResponse = ({ res, err }) => {
   res.status(500).json({ error: err.message })
 }
 
-const baseUrl = "http://localhost:3000"
+const baseUrl = process.env.BASE_URL || 'http://localhost:5000'
 
-// Create Finch Connect Session
+// Create Finch Connect Session (WITH dataSync support)
 export const createFinchConnectSession = async (req, res) => {
   try {
     const timerLabel = timerService.startTimer(
@@ -38,15 +39,37 @@ export const createFinchConnectSession = async (req, res) => {
       uid: req.user.company
     })
 
-    // Create the session (base version WITHOUT dataSync parameter)
-    const session = await client.connect.sessions.new({
-      products: ['directory', 'individual', 'employment'],
-      customer_id: companyDoc.uid,
-      customer_name: companyDoc.customizationConfig.name,
-      redirect_uri: `${baseUrl}/admin/management`,
-      sandbox: 'finch',
-      manual: false
-    })
+    // TODO: Check connection status and reauth based on introspect API
+
+    // Create the session (WITH dataSync parameter)
+    let session
+    try {
+      session = await client.connect.sessions.new({
+        products: ['directory', 'individual', 'employment'],
+        customer_id: companyDoc.uid,
+        customer_name: companyDoc.customizationConfig.name,
+        redirect_uri:
+          `${baseUrl}/admin/management` +
+          (req.body.dataSync ? '?dataSync=true' : ''),
+        sandbox: PROD_PROJECT_ID !== process.env.PROJECT_ID && 'provider',
+        manual: false
+      })
+    } catch (err) {
+      if (err?.error?.message?.includes('existing connection')) {
+        // If the connection already exists this means the access token became invalid
+        // We need to re-authenticate
+        session = await client.connect.sessions.reauthenticate({
+          connection_id: err?.error?.context?.connection_id,
+          customer_id: err?.error?.context?.customer_id,
+          redirect_uri:
+            `${baseUrl}/admin/management` +
+            (req.body.dataSync ? '?dataSync=true' : ''),
+          products: ['directory', 'individual', 'employment']
+        })
+      } else {
+        throw err
+      }
+    }
 
     const response = {
       connectUrl: session.connect_url
@@ -59,106 +82,56 @@ export const createFinchConnectSession = async (req, res) => {
   }
 }
 
-// Get employer data from Finch (base version - disconnects after fetching)
+// Get employer data from Finch (WITH access token storage)
 export const getFinchEmployerData = async (req, res) => {
   try {
     const timerLabel = timerService.startTimer(
       'CloudFunctions - getFinchEmployerData'
     )
 
-    // Exchange the code for an access token
-    const tokenResponse = await client.accessTokens.create({
-      code: req.body.code,
-      redirect_uri: `${baseUrl}/admin/management`
-    })
+    let accessToken
 
-    // Create the employer client
-    const employerClient = helperFunctions.createEmployerClient({
-      accessToken: tokenResponse.access_token
-    })
-
-    // Directory uses list() to get all the individual ids
-    const directoryResponse = await employerClient.hris.directory.list()
-    const individualIds = directoryResponse.individuals.map(
-      (individual) => individual.id
-    )
-
-    // Fetch individuals and employment data in batches
-    const individualsData = []
-    for await (const individualResponse of employerClient.hris.individuals.retrieveMany(
-      {
-        requests: individualIds.map((id) => ({ individual_id: id }))
-      }
-    )) {
-      individualsData.push(individualResponse.body)
-    }
-
-    const employmentData = []
-    for await (const employmentResponse of employerClient.hris.employments.retrieveMany(
-      {
-        requests: individualIds.map((id) => ({ individual_id: id }))
-      }
-    )) {
-      employmentData.push(employmentResponse.body)
-    }
-
-    // Disconnect after fetching (base version behavior)
-    console.log('Disconnecting the employer client...')
-    const disconnectResponse = await employerClient.account.disconnect()
-    console.log('Disconnection response:', disconnectResponse.status)
-
-    // Create maps for easy lookup
-    const individualMap = createMapFromList({
-      givenList: individualsData,
-      field: 'id'
-    })
-    const employmentMap = createMapFromList({
-      givenList: employmentData,
-      field: 'id'
-    })
-
-    // Parse employee data
-    const employees = individualsData.map((individual) => {
-      const employment = employmentMap[individual.id] || undefined
-      const manager = individualMap[employment?.manager?.id] || undefined
-
-      return {
-        email:
-          individual.emails?.filter((email) => email.type === 'work')[0]
-            ?.data || '',
-        fullName: `${individual.first_name} ${individual.last_name}`,
-        firstName: individual.first_name,
-        lastName: individual.last_name,
-        manager: manager
-          ? `${manager?.first_name} ${manager?.last_name}`
-          : null,
-        division: employment?.department?.name,
-        location:
-          employment?.location?.country || individual?.residence?.country,
-        jobTitle: employment?.title,
-        salary: employment?.income?.amount,
-        isActive: employment?.is_active,
-        startDate: employment?.start_date,
-        gender: individual?.gender,
-        race: individual?.ethnicity,
-        seniority: undefined,
-        team: undefined,
-        jobLevel: undefined
-      }
-    })
-
-    // Filter out inactive employees
-    const parsedEmployees = employees
-      .filter((employee) => employee.isActive)
-      .map((employee) => {
-        delete employee.isActive
-        return employee
+    if (req.body.code) {
+      // Exchange the code for an access token (new connection flow)
+      const tokenResponse = await client.accessTokens.create({
+        code: req.body.code,
+        redirect_uri:
+          `${baseUrl}/admin/management` +
+          (req.body.dataSync ? '?dataSync=true' : '')
       })
+
+      accessToken = tokenResponse.access_token
+
+      // Create the secret and update the company doc
+      await Promise.all([
+        createSecret({
+          secretId: `access_tokens_${req.user.company}`,
+          secretValue: accessToken
+        }),
+        helperFunctions.updateCompanyDoc({
+          companyId: req.user.company,
+          updatedFields: { dataSync: true }
+        })
+      ])
+    } else {
+      // Check for existing connection and use stored access token
+      accessToken = await getSecret({
+        secretId: `access_tokens_${req.user.company}`
+      })
+    }
+
+    // No need to fetch data if the request made from dataSync
+    const parsedEmployees = !req.body.dataSync
+      ? await helperFunctions.getFinchData({
+          accessToken
+        })
+      : []
 
     const response = {
       employees: parsedEmployees
     }
 
+    // The logic before sending the response
     timerService.endTimer(timerLabel)
     endMiddleware({ req, res, response })
   } catch (err) {
@@ -166,3 +139,70 @@ export const getFinchEmployerData = async (req, res) => {
   }
 }
 
+// Check if the connection exists with the finch provider
+export const checkConnection = async (req, res) => {
+  try {
+    const timerLabel = timerService.startTimer(
+      'CloudFunctions - checkConnection'
+    )
+
+    let accessToken
+    try {
+      accessToken = await getSecret({
+        secretId: `access_tokens_${req.user.company}`
+      })
+    } catch (error) {
+      // Secret doesn't exist - no connection
+      if (error.code === 5) {
+        // NOT_FOUND error code
+        timerService.endTimer(timerLabel)
+        endMiddleware({ req, res, response: { connectionExists: false } })
+        return
+      }
+      throw error
+    }
+
+    try {
+      // Test the connection with Finch SDK with a directory request
+      new Finch({ accessToken })
+    } catch (err) {
+      // If the access token is invalid, return false
+      if (err.message.includes('access token is invalid')) {
+        timerService.endTimer(timerLabel)
+        endMiddleware({ req, res, response: { connectionExists: false } })
+        return
+      }
+
+      throw err
+    }
+
+    // The logic before sending the response
+    timerService.endTimer(timerLabel)
+    endMiddleware({ req, res, response: { connectionExists: true } })
+  } catch (err) {
+    return sendErrorResponse({ res, err })
+  }
+}
+
+// Toggle data sync setting
+export const toggleDataSync = async (req, res) => {
+  try {
+    const timerLabel = timerService.startTimer(
+      'CloudFunctions - toggleDataSync'
+    )
+
+    // Update the company doc
+    await helperFunctions.updateCompanyDoc({
+      companyId: req.user.company,
+      updatedFields: {
+        dataSyncSetting: req.body.enabled
+      }
+    })
+
+    // The logic before sending the response
+    timerService.endTimer(timerLabel)
+    endMiddleware({ req, res, response: { enabled: req.body.enabled } })
+  } catch (err) {
+    return sendErrorResponse({ res, err })
+  }
+}

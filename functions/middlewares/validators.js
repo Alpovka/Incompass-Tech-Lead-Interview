@@ -9,8 +9,10 @@ const { ACTIVE, DEMO } = USER_STATUS
 // Map endpoints to their request validation schemas
 const endpointsToSchemas = {
   // HRIS ENDPOINTS
-  createFinchConnectSession: null,
+  createFinchConnectSession: hrisSchemas.createFinchConnectSession,
   getFinchEmployerData: hrisSchemas.getFinchEmployerData,
+  checkConnection: null,
+  toggleDataSync: hrisSchemas.toggleDataSync,
   // OTHER ENDPOINTS
   getUser: null,
   ingestEmployeeData: null
@@ -21,6 +23,8 @@ const endpointsToResponseSchemas = {
   // HRIS ENDPOINTS
   createFinchConnectSession: schemas.createFinchConnectSession,
   getFinchEmployerData: schemas.getFinchEmployerData,
+  checkConnection: schemas.checkConnection,
+  toggleDataSync: schemas.toggleDataSync,
   // OTHER ENDPOINTS
   getUser: schemas.getUser
 }
@@ -30,6 +34,8 @@ const endpointsToPermittedRoles = {
   // HRIS ENDPOINTS
   createFinchConnectSession: [ROLES.ADMIN],
   getFinchEmployerData: [ROLES.ADMIN],
+  checkConnection: [ROLES.ADMIN],
+  toggleDataSync: [ROLES.ADMIN],
   // OTHER ENDPOINTS
   getUser: [ROLES.ADMIN, ROLES.MANAGER, ROLES.EMPLOYEE],
   ingestEmployeeData: [ROLES.ADMIN]
@@ -39,6 +45,8 @@ const endpointsToPermittedRoles = {
 const endpointsToCompanyFeatures = {
   createFinchConnectSession: featuresMap.FINCH_INTEGRATION,
   getFinchEmployerData: featuresMap.FINCH_INTEGRATION,
+  checkConnection: featuresMap.FINCH_INTEGRATION,
+  toggleDataSync: featuresMap.DATA_SYNC,
   ingestEmployeeData: featuresMap.DATA_INGESTION
 }
 
@@ -46,6 +54,8 @@ const endpointsToCompanyFeatures = {
 const endpointsToAccountStatuses = {
   createFinchConnectSession: [ACTIVE],
   getFinchEmployerData: [ACTIVE],
+  checkConnection: [ACTIVE],
+  toggleDataSync: [ACTIVE],
   ingestEmployeeData: [ACTIVE],
   getUser: [ACTIVE, DEMO]
 }
