@@ -18,10 +18,12 @@ import { useGetRequest, Endpoints } from '/src/hooks/requests/use-get-request.js
 import { useToggleDataSync } from '/src/hooks/requests/use-toggle-data-sync.jsx'
 import DataSyncConfirmationDialog from '../DataSyncConfirmationDialog.jsx'
 import { INGESTION_MODES } from '../../../../../../functions/shared/constants/integration-constants.js'
+import { useSearchParams } from 'react-router-dom'
 
 const IntegrationHRIS = ({ onClose }) => {
+  const [searchParams, setSearchParams] = useSearchParams()
   const [modalState, setModalState] = useState({
-    code: new URLSearchParams(window.location.search).get('code'),
+    code: null,
     employees: null,
     selectedEmployees: null,
     mode: INGESTION_MODES.MERGE,

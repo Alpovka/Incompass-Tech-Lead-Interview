@@ -60,8 +60,6 @@ If you want to use your own Finch credentials, edit `.env.local`:
 ```bash
 FINCH_CLIENT_ID=your_finch_client_id
 FINCH_CLIENT_SECRET=your_finch_client_secret
-PROJECT_ID=employee-management-mvp
-BASE_URL=http://localhost:5000
 ```
 
 ## Local Development Architecture
