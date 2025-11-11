@@ -1,27 +1,17 @@
-import * as functions from 'firebase-functions'
-import admin from 'firebase-admin'
-import express from 'express'
-import cors from 'cors'
-import employeesRouter from './groups/employees.js'
+// Firebase Cloud Functions entry point (base version)
+import { https, runWith } from 'firebase-functions'
+import { MAIN_REGION } from './consts/constants.js'
+import app from './server.js'
 
-// Initialize Firebase Admin
-admin.initializeApp()
+const FUNCTION_DEFAULTS = {
+  timeoutSeconds: 540,
+  memory: '1GB'
+}
 
-// Create Express app
-const app = express()
+// Export the Express app as a Cloud Function
+export const api = runWith(FUNCTION_DEFAULTS)
+  .region(MAIN_REGION)
+  .https.onRequest(app)
 
-// Middleware
-app.use(cors({ origin: true }))
-app.use(express.json())
-
-// Routes
-app.use('/employees', employeesRouter)
-
-// Health check
-app.get('/health', (req, res) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString() })
-})
-
-// Export the API
-export const api = functions.https.onRequest(app)
+// Base version does NOT export scheduledFinchDataSync (that comes in the PR)
 

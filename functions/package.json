@@ -1,30 +1,30 @@
 {
   "name": "functions",
-  "description": "Cloud Functions for HR Management System",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Employee Management Cloud Functions",
+  "engines": {
+    "node": "18"
+  },
+  "main": "index.js",
   "scripts": {
     "serve": "firebase emulators:start --only functions",
     "shell": "firebase functions:shell",
     "start": "npm run shell",
     "deploy": "firebase deploy --only functions",
-    "logs": "firebase functions:log"
+    "logs": "firebase functions:log",
+    "test": "NODE_OPTIONS=--experimental-vm-modules jest"
   },
-  "engines": {
-    "node": "18"
-  },
-  "main": "index.js",
-  "type": "module",
   "dependencies": {
-    "@google-cloud/firestore": "^7.1.0",
-    "@tryfinch/finch-api": "^3.7.0",
-    "cors": "^2.8.5",
+    "@google-cloud/firestore": "^6.4.1",
+    "@tryfinch/finch-api": "^4.0.0",
     "express": "^4.18.2",
-    "firebase-admin": "^12.0.0",
-    "firebase-functions": "^4.5.0",
-    "yup": "^1.3.3"
+    "firebase-admin": "^11.11.0",
+    "firebase-functions": "^4.4.1",
+    "yup": "^1.2.0"
   },
   "devDependencies": {
-    "firebase-functions-test": "^3.1.0"
-  },
-  "private": true
+    "jest": "^29.5.0"
+  }
 }
 

@@ -2,11 +2,9 @@
   "functions": {
     "source": "functions",
     "runtime": "nodejs18",
-    "predeploy": []
-  },
-  "firestore": {
-    "rules": "firestore.rules",
-    "indexes": "firestore.indexes.json"
+    "predeploy": [
+      "npm --prefix \"$RESOURCE_DIR\" run lint"
+    ]
   },
   "hosting": {
     "public": "dist",
@@ -26,8 +24,8 @@
     "functions": {
       "port": 5001
     },
-    "firestore": {
-      "port": 8080
+    "hosting": {
+      "port": 5000
     },
     "ui": {
       "enabled": true,

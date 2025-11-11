@@ -7,6 +7,7 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
+# Dependencies
 node_modules
 dist
 dist-ssr
@@ -25,16 +26,10 @@ dist-ssr
 
 # Firebase
 .firebase
-.firebaserc
-firebase-debug.log*
-firestore-debug.log*
+*.cache
 
-# Environment variables
+# Environment
 .env
 .env.local
 .env.*.local
-
-# Functions
-functions/node_modules/
-functions/lib/
 
