@@ -1,5 +1,5 @@
 // Dashboard page
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import {
   Container,
   Box,
@@ -10,11 +10,21 @@ import {
   Paper
 } from '@mui/material'
 import { useAuth } from '../contexts/auth/firebase-context.jsx'
+import { useSearchParams } from 'react-router-dom'
 import IntegrationHRIS from '../sections/dashboard/admin/organization-settings/IntegrationModalContent/integrationHRIS.jsx'
 
 function Dashboard() {
   const { user } = useAuth()
+  const [searchParams] = useSearchParams()
   const [showHRISModal, setShowHRISModal] = useState(false)
+
+  // Automatically show HRIS modal if code parameter is present (after Finch redirect)
+  useEffect(() => {
+    const code = searchParams.get('code')
+    if (code) {
+      setShowHRISModal(true)
+    }
+  }, [searchParams])
 
   return (
     <>

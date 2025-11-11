@@ -1,5 +1,5 @@
 // HRIS Integration UI (base version WITHOUT connection check and data sync features)
-import React, { useState, useCallback } from 'react'
+import React, { useState, useCallback, useEffect } from 'react'
 import {
   Stack,
   Button,
@@ -7,21 +7,43 @@ import {
   CircularProgress,
   Alert,
   AlertTitle,
-  Box
+  Box,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
+  Chip
 } from '@mui/material'
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined'
+import CheckCircleIcon from '@mui/icons-material/CheckCircle'
 import { useFinchConnect } from '/src/hooks/requests/use-finch-connect.jsx'
 import { useGetRequest, Endpoints } from '/src/hooks/requests/use-get-request.jsx'
 import { INGESTION_MODES } from '../../../../../../functions/shared/constants/integration-constants.js'
+import { useSearchParams } from 'react-router-dom'
 
 const IntegrationHRIS = ({ onClose }) => {
+  const [searchParams, setSearchParams] = useSearchParams()
   const [modalState, setModalState] = useState({
-    code: new URLSearchParams(window.location.search).get('code'),
+    code: null,
     employees: null,
     selectedEmployees: null,
     mode: INGESTION_MODES.MERGE,
     isPreview: true
   })
+
+  // Extract code from URL parameters when component mounts or URL changes
+  useEffect(() => {
+    const code = searchParams.get('code')
+    if (code && !modalState.code) {
+      setModalState((prev) => ({ ...prev, code }))
+      // Clean up URL
+      searchParams.delete('code')
+      setSearchParams(searchParams, { replace: true })
+    }
+  }, [searchParams, setSearchParams, modalState.code])
 
   // Base version - fetches data using code from URL only
   const { isLoading: isLoadingFinchData, isError: isErrorFinchData } =
@@ -118,38 +140,100 @@ const IntegrationHRIS = ({ onClose }) => {
         </Stack>
       ) : null}
 
-      {/* Success state - show employee data */}
-      {!isErrorFinchData && modalState?.employees?.length > 0 ? (
+      {/* No employees found */}
+      {!isErrorFinchData && 
+       modalState?.employees?.length === 0 && 
+       !isLoadingFinchData ? (
         <Stack spacing={2}>
-          <Alert severity="success">
-            <AlertTitle>Success!</AlertTitle>
-            Retrieved {modalState.employees.length} employees from your HR system.
+          <Alert severity="warning">
+            <AlertTitle>No Employees Found</AlertTitle>
+            We couldn't find any active employees in your HR system. 
+            Please check your HR system and try again.
+          </Alert>
+          <Button
+            variant="contained"
+            onClick={handleFinchConnect}
+            disabled={isConnectingFinch || isConnected}
+          >
+            {isConnectingFinch
+              ? 'Connecting...'
+              : isConnected
+              ? 'Redirecting...'
+              : 'Try Again'}
+          </Button>
+        </Stack>
+      ) : null}
+
+      {/* Success state - show employee data in table */}
+      {!isErrorFinchData && modalState?.employees?.length > 0 ? (
+        <Stack spacing={3}>
+          <Alert severity="success" icon={<CheckCircleIcon />}>
+            <AlertTitle>Connection Successful!</AlertTitle>
+            Retrieved {modalState.employees.length} active employees from your HR system.
           </Alert>
 
-          <Typography variant="body2" color="text.secondary">
-            These are the active employees that we found in your HR system. 
-            You can now upload them into the system.
-          </Typography>
-
           <Box>
-            <Typography variant="subtitle2" gutterBottom>
-              Sample Employees:
+            <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 600 }}>
+              Employee Data Preview
             </Typography>
-            {modalState.employees.slice(0, 5).map((emp, idx) => (
-              <Typography key={idx} variant="body2">
-                • {emp.fullName} - {emp.email} - {emp.jobTitle || 'No title'}
-              </Typography>
-            ))}
-            {modalState.employees.length > 5 && (
-              <Typography variant="body2" color="text.secondary">
-                ... and {modalState.employees.length - 5} more
-              </Typography>
-            )}
+            <Typography variant="body2" color="text.secondary" gutterBottom>
+              These are the active employees found in your HR system. The data will be available 
+              for use in the platform.
+            </Typography>
           </Box>
 
-          <Button variant="contained" onClick={onClose}>
-            Done
-          </Button>
+          <TableContainer component={Paper} variant="outlined">
+            <Table size="small">
+              <TableHead>
+                <TableRow sx={{ bgcolor: 'grey.50' }}>
+                  <TableCell><strong>Full Name</strong></TableCell>
+                  <TableCell><strong>Email</strong></TableCell>
+                  <TableCell><strong>Job Title</strong></TableCell>
+                  <TableCell><strong>Manager</strong></TableCell>
+                  <TableCell><strong>Location</strong></TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {modalState.employees.slice(0, 10).map((employee, idx) => (
+                  <TableRow 
+                    key={idx}
+                    sx={{ '&:hover': { bgcolor: 'grey.50' } }}
+                  >
+                    <TableCell>{employee.fullName || '-'}</TableCell>
+                    <TableCell>{employee.email || '-'}</TableCell>
+                    <TableCell>{employee.jobTitle || '-'}</TableCell>
+                    <TableCell>{employee.manager || '-'}</TableCell>
+                    <TableCell>
+                      {employee.location ? (
+                        <Chip 
+                          label={employee.location} 
+                          size="small" 
+                          variant="outlined"
+                        />
+                      ) : (
+                        '-'
+                      )}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+
+          {modalState.employees.length > 10 && (
+            <Typography variant="body2" color="text.secondary" align="center">
+              Showing 10 of {modalState.employees.length} employees
+            </Typography>
+          )}
+
+          <Stack direction="row" spacing={2} justifyContent="flex-end">
+            <Button variant="outlined" onClick={handleFinchConnect}>
+              Connect Another System
+            </Button>
+            <Button variant="contained" onClick={onClose}>
+              Done
+            </Button>
+          </Stack>
         </Stack>
       ) : null}
     </>
