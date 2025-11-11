@@ -18,7 +18,7 @@ This project is structured as a monorepo containing:
 The `finch-data-sync` branch contains PR #1530 which adds:
 
 - Automatic weekly data sync from HRIS providers
-- Access token storage in Google Cloud Secret Manager
+- Access token storage using Firestore (mimicking Secret Manager for local development)
 - Connection status checking
 - Toggle for enabling/disabling auto sync
 - Scheduled Cloud Function for automated updates
@@ -64,6 +64,27 @@ PROJECT_ID=employee-management-mvp
 BASE_URL=http://localhost:5000
 ```
 
+## Local Development Architecture
+
+### Mock Secret Manager
+
+Since this project runs entirely on Firebase emulators, we use **Firestore as a mock Secret Manager**. Instead of using Google Cloud Secret Manager (which requires GCP authentication), secrets are stored in a Firestore collection called `secrets`.
+
+**Implementation Details**:
+
+- Secrets are stored in Firestore with document IDs like `access_tokens_{companyId}`
+- The `secret_manager_functions.js` provides `getSecret()`, `createSecret()`, and `listSecrets()` functions that mimic the Secret Manager API
+- Error codes match Secret Manager behavior (e.g., error code 5 for NOT_FOUND)
+- In production, this would be replaced with actual Google Cloud Secret Manager
+
+**Benefits**:
+
+- No GCP authentication required for local development
+- Works seamlessly with Firebase emulators
+- Same API interface as Secret Manager for easy production migration
+- Visible in Firestore Emulator UI at http://localhost:4000/firestore for debugging
+- Can inspect and modify secrets directly in the emulator UI
+
 ## Running Locally
 
 ### Start Firebase Emulators
@@ -76,8 +97,9 @@ firebase emulators:start
 This will start:
 
 - Functions emulator on http://localhost:5001
-- Hosting emulator on http://localhost:5000
-- UI dashboard on http://localhost:4000
+- Firestore emulator on http://localhost:8080
+- Hosting emulator on http://localhost:5002
+- Emulator UI dashboard on http://localhost:4000
 
 ### Start Frontend Development Server
 
@@ -107,7 +129,7 @@ This will start the Vite dev server on http://localhost:3000
 After switching to the `finch-data-sync` branch:
 
 1. Same initial connection flow as above
-2. Access tokens are now stored securely in Google Cloud Secret Manager
+2. Access tokens are now stored securely in Firestore (using a `secrets` collection that mimics Secret Manager behavior)
 3. Connection persists and can be reused
 4. New "Enable Auto Data Sync" toggle available
 5. When enabled, a weekly Cloud Function automatically syncs employee data
@@ -182,7 +204,7 @@ This codebase is set up for reviewing PR #1530 on the `finch-data-sync` branch. 
 **Backend**:
 
 - `functions/groups/hris.js` - Main HRIS endpoint changes
-- `functions/groups/helpers/secret_manager_functions.js` - New Secret Manager integration
+- `functions/groups/helpers/secret_manager_functions.js` - Firestore-based secret storage (mimics Secret Manager)
 - `functions/groups/other.js` - New scheduled sync function
 - `functions/groups/helpers/hris_functions.js` - New getFinchData function
 - `functions/groups/helpers/ingestion_functions.js` - Modified evaluation checks
@@ -197,7 +219,7 @@ This codebase is set up for reviewing PR #1530 on the `finch-data-sync` branch. 
 
 - **Backend**: Node.js 18, Express, Firebase Functions, Finch SDK
 - **Frontend**: React 18, Vite, Material-UI, React Query, React Router
-- **Cloud Services**: Google Cloud Functions, Google Cloud Secret Manager, Firestore
+- **Cloud Services**: Google Cloud Functions, Firestore (also used as mock Secret Manager)
 - **HRIS Integration**: Finch API
 
 ## License
