@@ -2,7 +2,8 @@
 // In production, this would use @google-cloud/secret-manager
 import admin from 'firebase-admin'
 
-const db = admin.firestore()
+// Lazy initialization to ensure Firebase Admin is initialized first
+const getDb = () => admin.firestore()
 
 /**
  * Get a secret from Firestore (mimicking Secret Manager behavior)
@@ -12,6 +13,7 @@ const db = admin.firestore()
  */
 const getSecret = async ({ secretId }) => {
   try {
+    const db = getDb()
     const secretDoc = await db.collection('secrets').doc(secretId).get()
 
     if (!secretDoc.exists) {
@@ -35,6 +37,7 @@ const getSecret = async ({ secretId }) => {
  */
 const createSecret = async ({ secretId, secretValue }) => {
   try {
+    const db = getDb()
     await db.collection('secrets').doc(secretId).set({
       value: secretValue,
       createdAt: admin.firestore.FieldValue.serverTimestamp(),
@@ -56,6 +59,7 @@ const createSecret = async ({ secretId, secretValue }) => {
  */
 const listSecrets = async ({ filter }) => {
   try {
+    const db = getDb()
     // Extract the filter term (e.g., 'access_tokens' from 'name:access_tokens')
     const filterTerm = filter.split(':')[1] || ''
 
