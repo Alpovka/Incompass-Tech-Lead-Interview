@@ -53,7 +53,7 @@ export const createFinchConnectSession = async (req, res) => {
         redirect_uri:
           `${baseUrl}/admin/management` +
           (req.body.dataSync ? '?dataSync=true' : ''),
-        sandbox: PROJECT_ID !== process.env.PROJECT_ID && 'provider',
+        sandbox: 'provider',
         manual: false
       })
     } catch (err) {
