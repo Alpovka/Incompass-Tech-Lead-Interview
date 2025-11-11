@@ -1,6 +1,6 @@
 // HRIS integration endpoints (WITH data sync features from PR)
 import { Finch } from '@tryfinch/finch-api'
-import { PROD_PROJECT_ID } from '../consts/constants.js'
+import { PROJECT_ID } from '../consts/constants.js'
 import helperFunctions from './helper_functions.js'
 import { createSecret, getSecret } from './helpers/secret_manager_functions.js'
 
@@ -51,7 +51,7 @@ export const createFinchConnectSession = async (req, res) => {
         redirect_uri:
           `${baseUrl}/admin/management` +
           (req.body.dataSync ? '?dataSync=true' : ''),
-        sandbox: PROD_PROJECT_ID !== process.env.PROJECT_ID && 'provider',
+        sandbox: PROJECT_ID !== process.env.PROJECT_ID && 'provider',
         manual: false
       })
     } catch (err) {
