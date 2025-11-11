@@ -1,11 +1,11 @@
 // Other endpoints and scheduled functions
 import { https, runWith } from 'firebase-functions'
-import { SecretManagerServiceClient } from '@google-cloud/secret-manager'
 import { MAIN_REGION } from '../consts/constants.js'
 import { INGESTION_MODES } from '../shared/constants/integration-constants.js'
 import helperFunctions from './helper_functions.js'
 import { ingestUsers } from './ingest-users.js'
 import { USER_PROPERTY_KEYS } from '../shared/constants/user-fields.js'
+import { listSecrets, getSecret } from './helpers/secret_manager_functions.js'
 
 const FUNCTION_DEFAULTS = {
     timeoutSeconds: 540,
@@ -19,13 +19,8 @@ export const scheduledFinchDataSync = runWith(FUNCTION_DEFAULTS)
     .timeZone('America/New_York')
     .onRun(async (context) => {
         try {
-            // Default env variable (reserved keyword)
-            const projectId = process.env.GCLOUD_PROJECT
-
-            // Get all access_tokens from the secret manager
-            const client = new SecretManagerServiceClient()
-            const [secrets] = await client.listSecrets({
-                parent: `projects/${projectId}`,
+            // Get all access_tokens from Firestore (mock Secret Manager)
+            const secrets = await listSecrets({
                 filter: 'name:access_tokens'
             })
 
@@ -46,11 +41,7 @@ export const scheduledFinchDataSync = runWith(FUNCTION_DEFAULTS)
                             .map((company) => company.uid)
                             .includes(companyId)
                     ) {
-                        const [version] = await client.accessSecretVersion({
-                            name: `${secret.name}/versions/latest`
-                        })
-                        companyByAccessTokens[companyId] =
-                            version.payload.data.toString('utf8')
+                        companyByAccessTokens[companyId] = secret.data.value
                     }
                 })
             )

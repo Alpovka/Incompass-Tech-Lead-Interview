@@ -1,43 +1,82 @@
-import { SecretManagerServiceClient } from '@google-cloud/secret-manager'
-import { MAIN_REGION } from '../../consts/constants.js'
+// Mock Secret Manager using Firestore (works with Firebase emulators)
+// In production, this would use @google-cloud/secret-manager
+import admin from 'firebase-admin'
 
-const client = new SecretManagerServiceClient()
+const db = admin.firestore()
 
+/**
+ * Get a secret from Firestore (mimicking Secret Manager behavior)
+ * @param {Object} params
+ * @param {string} params.secretId - The secret identifier
+ * @returns {Promise<string>} The secret value
+ */
 const getSecret = async ({ secretId }) => {
-  const secretName = `projects/${process.env.GCLOUD_PROJECT}/secrets/${secretId}/versions/latest`
+  try {
+    const secretDoc = await db.collection('secrets').doc(secretId).get()
 
-  const [secret] = await client.accessSecretVersion({
-    name: secretName
-  })
+    if (!secretDoc.exists) {
+      const error = new Error(`Secret ${secretId} not found`)
+      error.code = 5 // NOT_FOUND error code (mimicking Secret Manager)
+      throw error
+    }
 
-  return secret.payload.data.toString()
+    return secretDoc.data().value
+  } catch (error) {
+    console.error('Error getting secret:', error)
+    throw error
+  }
 }
 
+/**
+ * Create or update a secret in Firestore (mimicking Secret Manager behavior)
+ * @param {Object} params
+ * @param {string} params.secretId - The secret identifier
+ * @param {string} params.secretValue - The secret value to store
+ */
 const createSecret = async ({ secretId, secretValue }) => {
-  const [secret] = await client.createSecret({
-    parent: `projects/${process.env.GCLOUD_PROJECT}`,
-    secretId: secretId,
-    secret: {
-      replication: {
-        userManaged: {
-          replicas: [
-            {
-              location: MAIN_REGION
-            }
-          ]
-        }
-      }
-    }
-  })
+  try {
+    await db.collection('secrets').doc(secretId).set({
+      value: secretValue,
+      createdAt: admin.firestore.FieldValue.serverTimestamp(),
+      updatedAt: admin.firestore.FieldValue.serverTimestamp()
+    })
 
-  // Add a new version (this automatically becomes the latest)
-  await client.addSecretVersion({
-    parent: secret.name,
-    payload: {
-      data: Buffer.from(secretValue, 'utf8')
-    }
-  })
+    console.log(`Secret ${secretId} stored successfully`)
+  } catch (error) {
+    console.error('Error creating secret:', error)
+    throw error
+  }
 }
 
-export { getSecret, createSecret }
+/**
+ * List all secrets (for scheduled sync function)
+ * @param {Object} params
+ * @param {string} params.filter - Filter string (e.g., 'name:access_tokens')
+ * @returns {Promise<Array>} Array of secret documents
+ */
+const listSecrets = async ({ filter }) => {
+  try {
+    // Extract the filter term (e.g., 'access_tokens' from 'name:access_tokens')
+    const filterTerm = filter.split(':')[1] || ''
+
+    const secretsSnapshot = await db.collection('secrets').get()
+    const secrets = []
+
+    secretsSnapshot.forEach(doc => {
+      if (!filterTerm || doc.id.includes(filterTerm)) {
+        secrets.push({
+          name: doc.id,
+          data: doc.data()
+        })
+      }
+    })
+
+    return secrets
+  } catch (error) {
+    console.error('Error listing secrets:', error)
+    throw error
+  }
+}
+
+export { getSecret, createSecret, listSecrets }
 
