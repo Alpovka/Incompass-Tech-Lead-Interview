@@ -1,10 +1,8 @@
-// Load environment variables FIRST
-import dotenv from 'dotenv'
-dotenv.config({ path: '.env.local' })
 
 // Initialize Firebase Admin
 import admin from 'firebase-admin'
 admin.initializeApp()
+
 
 // Firebase Cloud Functions entry point (WITH scheduled data sync)
 import { runWith } from 'firebase-functions'

@@ -3,13 +3,14 @@ import { Finch } from '@tryfinch/finch-api'
 import { PROJECT_ID } from '../consts/constants.js'
 import helperFunctions from './helper_functions.js'
 import { createSecret, getSecret } from './helpers/secret_manager_functions.js'
+import dotenv from 'dotenv'
+dotenv.config({ path: '.env.local' })
 
-const createClient = () => {
-  return new Finch({
-    clientId: process.env.FINCH_CLIENT_ID,
-    clientSecret: process.env.FINCH_CLIENT_SECRET
-  })
-}
+// Initialize Finch API client
+const client = new Finch({
+  clientId: process.env.FINCH_CLIENT_ID,
+  clientSecret: process.env.FINCH_CLIENT_SECRET
+})
 
 // Mock timer service
 const timerService = {
@@ -40,7 +41,7 @@ export const createFinchConnectSession = async (req, res) => {
       uid: req.user.company
     })
 
-    const client = createClient()
+    // TODO: Check connection status and reauth based on introspect API
 
     // Create the session (WITH dataSync parameter)
     let session
@@ -89,8 +90,6 @@ export const getFinchEmployerData = async (req, res) => {
     const timerLabel = timerService.startTimer(
       'CloudFunctions - getFinchEmployerData'
     )
-
-    const client = createClient()
 
     let accessToken
 
@@ -148,8 +147,6 @@ export const checkConnection = async (req, res) => {
     const timerLabel = timerService.startTimer(
       'CloudFunctions - checkConnection'
     )
-
-    const client = createClient()
 
     let accessToken
     try {
