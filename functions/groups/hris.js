@@ -28,7 +28,7 @@ const sendErrorResponse = ({ res, err }) => {
   res.status(500).json({ error: err.message })
 }
 
-const baseUrl = process.env.BASE_URL || 'http://localhost:5000'
+const baseUrl = 'http://localhost:3000'
 
 // Create Finch Connect Session (WITH dataSync support)
 export const createFinchConnectSession = async (req, res) => {
