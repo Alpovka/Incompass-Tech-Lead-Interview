@@ -1,8 +1,20 @@
 // Express server for Cloud Functions (base version)
 import express from 'express'
+import cors from 'cors'
 import { validateRequest } from './middlewares/validators.js'
 
 const app = express()
+
+// CORS Configuration - must be before other middleware
+app.use(cors({
+  origin: true,
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}))
+
+// Handle preflight requests
+app.options('*', cors())
 
 // Middleware
 app.use(express.json())

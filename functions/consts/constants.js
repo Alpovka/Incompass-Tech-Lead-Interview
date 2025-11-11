@@ -1,6 +1,6 @@
 // Main application constants
 export const MAIN_REGION = 'us-central1'
-export const PROD_PROJECT_ID = 'incompass-prod'
+export const PROJECT_ID = 'incompass-local'
 
 export const ROLES = Object.freeze({
   ADMIN: 'admin',

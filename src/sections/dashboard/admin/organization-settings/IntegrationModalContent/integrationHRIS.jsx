@@ -12,7 +12,7 @@ import {
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined'
 import { useFinchConnect } from '/src/hooks/requests/use-finch-connect.jsx'
 import { useGetRequest, Endpoints } from '/src/hooks/requests/use-get-request.jsx'
-import { INGESTION_MODES } from '../../../../../functions/shared/constants/integration-constants.js'
+import { INGESTION_MODES } from '../../../../../../functions/shared/constants/integration-constants.js'
 
 const IntegrationHRIS = ({ onClose }) => {
   const [modalState, setModalState] = useState({

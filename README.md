@@ -5,6 +5,7 @@ This is a simplified employee management system built as an MVP for demonstratin
 ## Overview
 
 This project is structured as a monorepo containing:
+
 - **Backend**: Firebase Cloud Functions (Node.js) with Express
 - **Frontend**: React app with Vite and Material-UI
 - **HRIS Integration**: Finch API for connecting to various HR systems
@@ -15,6 +16,7 @@ This project is structured as a monorepo containing:
 - **`finch-data-sync`**: Pull Request branch adding automatic data sync functionality
 
 The `finch-data-sync` branch contains PR #1530 which adds:
+
 - Automatic weekly data sync from HRIS providers
 - Access token storage in Google Cloud Secret Manager
 - Connection status checking
@@ -26,8 +28,8 @@ The `finch-data-sync` branch contains PR #1530 which adds:
 - Node.js 18+ (https://nodejs.org/)
 - npm or yarn
 - Firebase CLI (`npm install -g firebase-tools`)
-- A Firebase project (can be created at https://console.firebase.google.com/)
-- Finch API credentials (https://developer.tryfinch.com/)
+
+**Note**: This project runs entirely on Firebase emulators. No Firebase account or login is required!
 
 ## Installation
 
@@ -42,35 +44,23 @@ npm install
 cd functions && npm install
 ```
 
-### 2. Configure Firebase
+### 2. Set Up Environment Variables
+
+Create a `.env.local` file in the `functions` directory:
 
 ```bash
-# Login to Firebase
-firebase login
-
-# Initialize your Firebase project (if not already done)
-firebase init
-
-# Select:
-# - Functions (JavaScript, Node 18)
-# - Hosting (optional)
-# - Emulators (Functions, Hosting)
+cd functions
+cp env.example .env.local
 ```
 
-### 3. Set Up Finch API
+The project is pre-configured to work with Finch's sandbox mode, so no API credentials are needed for testing. The default values in `env.example` will work out of the box.
 
-1. Sign up for a Finch developer account at https://developer.tryfinch.com/
-2. Create an application and get your client ID and secret
-3. For testing, you can use sandbox mode (configured in the code)
+If you want to use your own Finch credentials, edit `.env.local`:
 
-### 4. Environment Variables
-
-Create a `.env` file in the `functions` directory:
-
-```
+```bash
 FINCH_CLIENT_ID=your_finch_client_id
 FINCH_CLIENT_SECRET=your_finch_client_secret
-PROJECT_ID=your-firebase-project-id
+PROJECT_ID=employee-management-mvp
 BASE_URL=http://localhost:5000
 ```
 
@@ -84,6 +74,7 @@ firebase emulators:start
 ```
 
 This will start:
+
 - Functions emulator on http://localhost:5001
 - Hosting emulator on http://localhost:5000
 - UI dashboard on http://localhost:4000
@@ -165,6 +156,7 @@ Finch provides a sandbox environment for testing. Use these test credentials:
 **Provider**: Any (Finch Sandbox will simulate any provider)
 
 **Test Credentials**:
+
 - Username: `good_user`
 - Password: `good_pass`
 
@@ -188,6 +180,7 @@ This codebase is set up for reviewing PR #1530 on the `finch-data-sync` branch. 
 ### Key Files to Review
 
 **Backend**:
+
 - `functions/groups/hris.js` - Main HRIS endpoint changes
 - `functions/groups/helpers/secret_manager_functions.js` - New Secret Manager integration
 - `functions/groups/other.js` - New scheduled sync function
@@ -195,6 +188,7 @@ This codebase is set up for reviewing PR #1530 on the `finch-data-sync` branch. 
 - `functions/groups/helpers/ingestion_functions.js` - Modified evaluation checks
 
 **Frontend**:
+
 - `src/sections/dashboard/admin/organization-settings/IntegrationModalContent/integrationHRIS.jsx` - UI changes
 - `src/hooks/requests/use-toggle-data-sync.jsx` - New hook
 - `src/sections/dashboard/admin/organization-settings/DataSyncConfirmationDialog.jsx` - New component
@@ -213,4 +207,3 @@ Proprietary - Incompass Labs
 ## Support
 
 For questions about this codebase, contact the Incompass Labs technical team.
-

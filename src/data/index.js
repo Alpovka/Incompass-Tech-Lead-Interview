@@ -1,5 +1,6 @@
 // API client base
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001/api'
+// Firebase Functions emulator URL format: http://localhost:5001/{projectId}/{region}/{functionName}
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001/employee-management-mvp/us-central1/api'
 
 const makeRequest = async ({ endpoint, data = {} }) => {
   try {

@@ -1,5 +1,13 @@
+// Load environment variables FIRST
+import dotenv from 'dotenv'
+dotenv.config({ path: '.env.local' })
+
+// Initialize Firebase Admin
+import admin from 'firebase-admin'
+admin.initializeApp()
+
 // Firebase Cloud Functions entry point (base version)
-import { https, runWith } from 'firebase-functions'
+import { runWith } from 'firebase-functions'
 import { MAIN_REGION } from './consts/constants.js'
 import app from './server.js'
 
@@ -12,6 +20,4 @@ const FUNCTION_DEFAULTS = {
 export const api = runWith(FUNCTION_DEFAULTS)
   .region(MAIN_REGION)
   .https.onRequest(app)
-
-// Base version does NOT export scheduledFinchDataSync (that comes in the PR)
 

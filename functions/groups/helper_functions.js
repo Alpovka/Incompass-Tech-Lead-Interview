@@ -5,7 +5,7 @@ import { createMapFromList } from './helpers/logic_functions.js'
 // Mock database functions for the MVP
 const getCompanyDoc = async ({ uid }) => {
   return {
-    uid,
+    uid: 'uid-uuid-uid-uuid-uid-uuid',
     customizationConfig: {
       name: 'Demo Company'
     }

@@ -28,8 +28,9 @@ dist-ssr
 .firebase
 *.cache
 
-# Environment
+# Environment (keep .env.example for reference)
 .env
 .env.local
 .env.*.local
+!.env.example
 

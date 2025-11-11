@@ -1,13 +1,12 @@
 // HRIS integration endpoints (base version WITHOUT data sync features)
 import { Finch } from '@tryfinch/finch-api'
-import { PROD_PROJECT_ID } from '../consts/constants.js'
 import helperFunctions from './helper_functions.js'
 import { createMapFromList } from './helpers/logic_functions.js'
 
 // Initialize Finch API client
 const client = new Finch({
-  clientId: process.env.FINCH_CLIENT_ID || 'sandbox-client-id',
-  clientSecret: process.env.FINCH_CLIENT_SECRET || 'sandbox-client-secret'
+  clientId: process.env.FINCH_CLIENT_ID,
+  clientSecret: process.env.FINCH_CLIENT_SECRET
 })
 
 // Mock timer service
@@ -26,7 +25,7 @@ const sendErrorResponse = ({ res, err }) => {
   res.status(500).json({ error: err.message })
 }
 
-const baseUrl = process.env.BASE_URL || 'http://localhost:5000'
+const baseUrl = "http://localhost:3000"
 
 // Create Finch Connect Session
 export const createFinchConnectSession = async (req, res) => {
@@ -45,7 +44,7 @@ export const createFinchConnectSession = async (req, res) => {
       customer_id: companyDoc.uid,
       customer_name: companyDoc.customizationConfig.name,
       redirect_uri: `${baseUrl}/admin/management`,
-      sandbox: PROD_PROJECT_ID !== process.env.PROJECT_ID && 'finch',
+      sandbox: 'finch',
       manual: false
     })
 
