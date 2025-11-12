@@ -10,6 +10,8 @@ This project is structured as a monorepo containing:
 - **Frontend**: React app with Vite and Material-UI
 - **HRIS Integration**: Finch API for connecting to various HR systems
 
+Finch API Docs: https://developer.tryfinch.com/
+
 ## Branch Structure
 
 - **`main`**: Base working system with manual Finch connection and one-time employee import
