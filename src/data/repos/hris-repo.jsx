@@ -3,10 +3,11 @@ import schemas from '../../../functions/shared/schemas/index.js'
 import makeRequest from '../index.js'
 
 const hrisRepo = {
-  createFinchConnectSession: async () => {
+  createFinchConnectSession: async (data) => {
     try {
       const result = await makeRequest({
-        endpoint: 'createFinchConnectSession'
+        endpoint: 'createFinchConnectSession',
+        data
       })
 
       // validate the result
@@ -33,8 +34,38 @@ const hrisRepo = {
       console.warn('error @hrisRepo -> getFinchEmployerData', error)
       throw error
     }
+  },
+  checkConnection: async () => {
+    try {
+      const result = await makeRequest({
+        endpoint: 'checkConnection'
+      })
+
+      // validate the result
+      const validatedResult = schemas.checkConnection.validateSync(result)
+
+      return validatedResult
+    } catch (error) {
+      console.warn('error @hrisRepo -> checkConnection', error)
+      throw error
+    }
+  },
+  toggleDataSync: async (data) => {
+    try {
+      const result = await makeRequest({
+        data,
+        endpoint: 'toggleDataSync'
+      })
+
+      // validate the result
+      const validatedResult = schemas.toggleDataSync.validateSync(result)
+
+      return validatedResult
+    } catch (error) {
+      console.warn('error @hrisRepo -> toggleDataSync', error)
+      throw error
+    }
   }
-  // checkConnection and toggleDataSync come in PR
 }
 
 export default hrisRepo

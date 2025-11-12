@@ -1,4 +1,4 @@
-// User tests (base version WITHOUT dataSyncSetting)
+// User tests (WITH dataSyncSetting)
 describe('getUser tests', () => {
   test('should return user data', () => {
     const mockUser = {
@@ -10,8 +10,8 @@ describe('getUser tests', () => {
       status: 'active',
       features: {
         finchIntegration: true
-      }
-      // dataSyncSetting comes in PR
+      },
+      dataSyncSetting: false
     }
 
     expect(mockUser).toBeDefined()

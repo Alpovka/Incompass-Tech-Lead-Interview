@@ -1,9 +1,9 @@
-// Ingestion helper functions (base version WITHOUT dataSync modifications)
+// Ingestion helper functions (WITH dataSync modifications)
 import { INGESTION_MODES } from '../../shared/constants/integration-constants.js'
 
 /**
  * Check if users to be deleted or updated are in active evaluations
- * Base version - doesn't filter out users in active cycles for dataSync
+ * WITH dataSync - filters out users in active cycles when dataSync is enabled
  */
 const checkEvaluations = async ({
   companyEvaluations = [],
@@ -11,28 +11,54 @@ const checkEvaluations = async ({
   usersToUpdate = [],
   usersToDelete = []
 }) => {
+  const isDataSync = invoker.uid === 'dataSync'
   const statuses = ['ONGOING', 'AWAITING_RESULTS']
 
   // Initialize check objects for each status
   const deletionCheck = Object.fromEntries(statuses.map((s) => [s, {}]))
   const updateCheck = Object.fromEntries(statuses.map((s) => [s, {}]))
 
-  // For each evaluation, check if there are usersToDelete or usersToUpdate
+  // Set to remove users from usersToDelete and usersToUpdate
+  const toRemoveDeletedUsers = new Set()
+  const toRemoveUpdatedUsers = new Set()
+
+  // For each evaluation, check if there are usersToDelete or usersToUpdate in them
   for (const evaluation of companyEvaluations) {
     const { status, uid, users } = evaluation
     for (const user of usersToDelete) {
       if (users.includes(user.uid)) {
-        deletionCheck[status][uid] = deletionCheck[status][uid] || []
-        deletionCheck[status][uid].push(user)
+        if (isDataSync) {
+          toRemoveDeletedUsers.add(user.uid)
+        } else {
+          deletionCheck[status][uid] = deletionCheck[status][uid] || []
+          deletionCheck[status][uid].push(user)
+        }
       }
     }
     for (const user of usersToUpdate) {
       if (users.includes(user.uid)) {
-        updateCheck[status][uid] = updateCheck[status][uid] || []
-        updateCheck[status][uid].push(user)
+        if (isDataSync) {
+          toRemoveUpdatedUsers.add(user.uid)
+        } else {
+          updateCheck[status][uid] = updateCheck[status][uid] || []
+          updateCheck[status][uid].push(user)
+        }
       }
     }
   }
+
+  // Update usersToDelete and usersToUpdate like this because they are assigned as constant outside
+  const filteredUsersToDelete = usersToDelete.filter(
+    (u) => !toRemoveDeletedUsers.has(u.uid)
+  )
+  usersToDelete.length = 0
+  usersToDelete.push(...filteredUsersToDelete)
+
+  const filteredUsersToUpdate = usersToUpdate.filter(
+    (u) => !toRemoveUpdatedUsers.has(u.uid)
+  )
+  usersToUpdate.length = 0
+  usersToUpdate.push(...filteredUsersToUpdate)
 
   // Extract and format user names for each status
   const transformUsersObjectToUserFullNamesArray = (evaluationToUsers) =>

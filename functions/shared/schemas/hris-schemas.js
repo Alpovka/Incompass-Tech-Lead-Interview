@@ -1,6 +1,6 @@
-import { array, object, string } from 'yup'
+import { array, object, boolean, string } from 'yup'
 
-// Response schemas for HRIS endpoints (base version WITHOUT checkConnection and toggleDataSync)
+// Response schemas for HRIS endpoints
 export const createFinchConnectSession = object()
   .shape({
     connectUrl: string().required()
@@ -9,5 +9,13 @@ export const createFinchConnectSession = object()
 
 export const getFinchEmployerData = object().shape({
   employees: array().of(object())
+})
+
+export const checkConnection = object().shape({
+  connectionExists: boolean().required()
+})
+
+export const toggleDataSync = object().shape({
+  enabled: boolean().required()
 })
 

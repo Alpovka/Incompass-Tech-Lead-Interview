@@ -1,4 +1,4 @@
-// Access control settings (base version WITHOUT DATA_SYNC)
+// Access control settings (WITH DATA_SYNC)
 import { featuresMap } from '../../functions/shared/constants/features.js'
 import { ROLES, USER_STATUS } from '../../functions/consts/constants.js'
 
@@ -16,7 +16,13 @@ export const ACCESS_CONTROLS = {
       statuses: [USER_STATUS.ACTIVE],
       feature: featuresMap.DATA_INGESTION
     }
+  ],
+  DATA_SYNC: [
+    {
+      roles: [ROLES.ADMIN],
+      statuses: [USER_STATUS.ACTIVE],
+      feature: featuresMap.DATA_SYNC
+    }
   ]
-  // DATA_SYNC access control comes in PR
 }
 

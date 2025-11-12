@@ -42,11 +42,15 @@ app.get('/health', (req, res) => {
 // ----- HRIS ENDPOINTS -----
 import {
   createFinchConnectSession,
-  getFinchEmployerData
+  getFinchEmployerData,
+  checkConnection,
+  toggleDataSync
 } from './groups/hris.js'
 
 app.post('/createFinchConnectSession', createFinchConnectSession)
 app.post('/getFinchEmployerData', getFinchEmployerData)
+app.post('/checkConnection', checkConnection)
+app.post('/toggleDataSync', toggleDataSync)
 
 // ----- OTHER ENDPOINTS -----
 // Mock getUser endpoint
